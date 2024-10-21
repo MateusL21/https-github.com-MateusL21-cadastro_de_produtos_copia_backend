@@ -3,8 +3,11 @@ package com.abutua.productbackend.resources;
 import java.net.URI;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,51 +15,54 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
- import com.abutua.productbackend.models.Product;
+import com.abutua.productbackend.dto.ProductRequest;
+import com.abutua.productbackend.dto.ProductResponse;
 import com.abutua.productbackend.services.ProductService;
 
 @RestController
 @CrossOrigin
+@RequestMapping("products")
 public class ProductController {
 
     @Autowired
     private ProductService productService; 
 
-    @PostMapping("products")
-    public ResponseEntity<Product> save(@RequestBody Product product) {
-        product = productService.save(product);
+    @PostMapping
+    public ResponseEntity<ProductResponse> save(@Validated @RequestBody ProductRequest productRequest) {
+        ProductResponse productResponse = productService.save(productRequest);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(product.getId())
+                .buildAndExpand(productResponse.getId())
                 .toUri();
  
-        return ResponseEntity.created(location).body(product);
+        return ResponseEntity.created(location).body(productResponse);
     }
 
-    @GetMapping("products/{id}")
-    public ResponseEntity<Product> getProduct(@PathVariable int id) {
-        Product product = productService.getById(id);
+    @GetMapping("{id}")
+    public ResponseEntity<ProductResponse> getProduct(@PathVariable long id) {
+        ProductResponse product = productService.getById(id);
         return ResponseEntity.ok(product);
     }
 
-    @GetMapping("products")  
-    public List<Product> getProducts() { 
-        return productService.getAll();
+    @GetMapping 
+    public ResponseEntity<List<ProductResponse>> getProducts() { 
+        return ResponseEntity.ok(productService.getAll());
     }
 
-    @DeleteMapping("products/{id}")    
-    public ResponseEntity<Void> removeProduct(@PathVariable int id) {
+    @DeleteMapping("{id}")    
+    public ResponseEntity<Void> removeProduct(@PathVariable long id) {
         productService.deleteById(id);                
         return ResponseEntity.noContent().build(); 
     }
    
-    @PutMapping("products/{id}")    
-    public ResponseEntity<Void> updateProduct(@PathVariable int id, @RequestBody Product productUpdate) {
+    @PutMapping("{id}")    
+    public ResponseEntity<Void> updateProduct(@PathVariable long id,@Valid @RequestBody ProductRequest productUpdate) {
         productService.update(id, productUpdate);
         return ResponseEntity.ok().build(); 
     }
